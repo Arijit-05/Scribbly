@@ -78,10 +78,10 @@
         android:background="@drawable/search_bar_bg"
         android:fontFamily="@font/poppins_regular"
         android:hint="Search your notes"
-        android:textSize="16sp"
         android:inputType="text"
-        android:textColor="@color/black"
         android:padding="14dp"
+        android:textColor="@color/black"
+        android:textSize="16sp"
         android:visibility="gone" />
 
     <!-- LABEL HORIZONTAL SCROLL VIEW -->
@@ -135,13 +135,37 @@
 
     </HorizontalScrollView>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/notes_recycler_view"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/labels"
-        android:layout_marginHorizontal="15dp"
-        android:layout_marginTop="10dp"
-        tools:listitem="@layout/note_item" />
+        android:layout_height="match_parent"
+        android:layout_below="@id/labels">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/lottie_refresh"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                android:visibility="gone"
+                app:lottie_autoPlay="true"
+                app:lottie_loop="true"
+                app:lottie_rawRes="@raw/lottie_refresh" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/notes_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginTop="10dp"
+                tools:listitem="@layout/note_item" />
+
+        </RelativeLayout>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </RelativeLayout>

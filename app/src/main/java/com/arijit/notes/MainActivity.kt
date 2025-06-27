@@ -22,13 +22,10 @@ import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.arijit.notes.utils.Note
 import com.arijit.notes.utils.NoteAdapter
@@ -40,11 +37,9 @@ import android.graphics.Rect
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.RelativeLayout
-import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
-import com.arijit.notes.utils.ChecklistItem
-import com.google.android.material.internal.ViewUtils.hideKeyboard
-import com.google.android.material.internal.ViewUtils.showKeyboard
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.airbnb.lottie.LottieAnimationView
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.gson.Gson
 import kotlin.collections.emptyList
@@ -85,6 +80,20 @@ class MainActivity : AppCompatActivity() {
         notesRecyclerView = findViewById(R.id.notes_recycler_view)
         header = findViewById(R.id.header)
         searchBar = findViewById(R.id.search_bar)
+        val swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
+        val lottieRefresh = findViewById<LottieAnimationView>(R.id.lottie_refresh)
+
+        swipeRefreshLayout.setOnRefreshListener {
+            lottieRefresh.visibility = View.VISIBLE
+            lottieRefresh.playAnimation()
+            fetchNotes() // your existing function
+            Handler(Looper.getMainLooper()).postDelayed({
+                swipeRefreshLayout.isRefreshing = false
+                lottieRefresh.cancelAnimation()
+                lottieRefresh.visibility = View.GONE
+            }, 1500)
+            Toast.makeText(this, "Notes refreshed", Toast.LENGTH_SHORT).show()
+        }
 
         // Register the launcher for AddNoteActivity
         addNoteLauncher =

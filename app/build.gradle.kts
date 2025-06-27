@@ -53,4 +53,5 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.github.QuadFlask:colorpicker:0.0.15")
     implementation("com.google.code.gson:gson:2.13.1")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
 }
