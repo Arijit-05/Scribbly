@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "45763142237",
+    "project_id": "scribbly-99889",
+    "storage_bucket": "scribbly-99889.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:45763142237:android:f52296c7c8b0bcbbc3a3b4",
+        "android_client_info": {
+          "package_name": "com.arijit.notes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDK_P989Sm53f5SygIVGAlKbrIFTKwXjTo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
