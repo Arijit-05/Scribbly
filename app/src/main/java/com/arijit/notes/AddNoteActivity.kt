@@ -2,11 +2,14 @@ package com.arijit.notes
 
 import android.Manifest
 import android.app.AlertDialog
+import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.TypedValue
 import android.view.View
 import android.widget.CheckBox
 import android.widget.EditText
@@ -17,6 +20,8 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.arijit.notes.utils.ChecklistItem
@@ -72,17 +77,32 @@ class AddNoteActivity : AppCompatActivity() {
         noteTxt.text = content
         pin = isPinned
         pinBtn.setImageResource(if (pin) R.drawable.pin_filled else R.drawable.pin)
-        findViewById<View>(R.id.main).setBackgroundColor(Color.parseColor(backgroundColor))
 
-        addCheckList.setOnClickListener {
-            showChecklistItemDialog()
+        val defaultColors = listOf(
+            "#b9c7d9", "#d9bbb9", "#d7d9b9", "#d9cbb9", "#b1ffda",
+            "#c1f1ec", "#f6a1a5", "#f05a5f", "#f3b18a", "#c97e5e", "#c9fced",
+            "#c9f2fc", "#ffb4ae", "#ff958c", "#ff5497", "#ffca87", "#ffe7d7",
+            "#ccf6e3", "#eefcf6", "#ff609d"
+        )
+
+        // Set background color based on note's color
+        if (noteId != null) {
+            // Existing note: use its current background color
+            findViewById<View>(R.id.main).setBackgroundColor(Color.parseColor(backgroundColor))
+        } else {
+            // New note: assign a random color and set it as background
+            val randomColor = defaultColors.random()
+            findViewById<View>(R.id.main).setBackgroundColor(Color.parseColor(randomColor))
+            selectedColor = randomColor // Store the selected color for saving
         }
 
         // Parse checklist from JSON
         val checklistJson = intent.getStringExtra("checkListJson")
         if (!checklistJson.isNullOrEmpty()) {
-            val type = object : com.google.gson.reflect.TypeToken<List<com.arijit.notes.utils.ChecklistItem>>() {}.type
-            val items: List<com.arijit.notes.utils.ChecklistItem> = com.google.gson.Gson().fromJson(checklistJson, type)
+            val type = object :
+                com.google.gson.reflect.TypeToken<List<com.arijit.notes.utils.ChecklistItem>>() {}.type
+            val items: List<com.arijit.notes.utils.ChecklistItem> =
+                com.google.gson.Gson().fromJson(checklistJson, type)
             checklistItems.clear()
             checklistItems.addAll(items)
             for (item in items) {
@@ -115,7 +135,7 @@ class AddNoteActivity : AppCompatActivity() {
         addColor.setOnClickListener {
             vibrate()
             val initial =
-                if (selectedColor.isNotEmpty()) Color.parseColor(selectedColor) else Color.WHITE
+                if (selectedColor.isNotEmpty()) Color.parseColor(selectedColor) else R.color.default_note
 
             val dialog = com.flask.colorpicker.builder.ColorPickerDialogBuilder.with(this)
                 .setTitle("Pick a color")
@@ -142,6 +162,10 @@ class AddNoteActivity : AppCompatActivity() {
             vibrate()
             togglePin()
         }
+
+        addCheckList.setOnClickListener {
+            showChecklistItemDialog()
+        }
     }
 
     private fun showChecklistItemDialog() {
@@ -154,10 +178,14 @@ class AddNoteActivity : AppCompatActivity() {
             .setPositiveButton("Add") { _, _ ->
                 val itemText = input.text.toString().trim()
                 if (itemText.isNotEmpty()) {
-                    val item = com.arijit.notes.utils.ChecklistItem(itemText, false)
+                    val item = ChecklistItem(itemText, false)
                     checklistItems.add(item)
                     addChecklistView(item)
-                    Toast.makeText(this, "Press the checklist button again to add more items!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        "Press the checklist button again to add more items!",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -168,6 +196,11 @@ class AddNoteActivity : AppCompatActivity() {
         val checkBox = CheckBox(this)
         checkBox.text = item.text
         checkBox.isChecked = item.isChecked
+
+        checkBox.setTextColor(ContextCompat.getColor(this, R.color.black))
+        checkBox.buttonTintList =
+            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.black))
+
         checklistContainer.addView(checkBox)
     }
 
@@ -206,7 +239,7 @@ class AddNoteActivity : AppCompatActivity() {
 
     private fun saveNoteAndFinish() {
         val defaultColors = listOf(
-            "#65193a", "#b9c7d9", "#d9bbb9", "#d7d9b9", "#d9cbb9", "#b1ffda",
+            "#b9c7d9", "#d9bbb9", "#d7d9b9", "#d9cbb9", "#b1ffda",
             "#c1f1ec", "#f6a1a5", "#f05a5f", "#f3b18a", "#c97e5e", "#c9fced",
             "#c9f2fc", "#ffb4ae", "#ff958c", "#ff5497", "#ffca87", "#ffe7d7",
             "#ccf6e3", "#eefcf6", "#ff609d"
@@ -225,7 +258,12 @@ class AddNoteActivity : AppCompatActivity() {
         checklistItems.clear()
         for (i in 0 until checklistContainer.childCount) {
             val checkBox = checklistContainer.getChildAt(i) as? CheckBox ?: continue
-            checklistItems.add(com.arijit.notes.utils.ChecklistItem(checkBox.text.toString(), checkBox.isChecked))
+            checklistItems.add(
+                com.arijit.notes.utils.ChecklistItem(
+                    checkBox.text.toString(),
+                    checkBox.isChecked
+                )
+            )
         }
 
         val gson = com.google.gson.Gson()
@@ -245,8 +283,11 @@ class AddNoteActivity : AppCompatActivity() {
             val newColor = if (selectedColor.isNotEmpty()) selectedColor else originalColor
             val originalLabels = intent.getStringArrayListExtra("labels") ?: arrayListOf()
             val originalChecklistJson = intent.getStringExtra("checkListJson")
-            val type = object : com.google.gson.reflect.TypeToken<List<com.arijit.notes.utils.ChecklistItem>>() {}.type
-            val originalChecklist: List<com.arijit.notes.utils.ChecklistItem> = if (!originalChecklistJson.isNullOrEmpty()) com.google.gson.Gson().fromJson(originalChecklistJson, type) else emptyList()
+            val type = object :
+                com.google.gson.reflect.TypeToken<List<com.arijit.notes.utils.ChecklistItem>>() {}.type
+            val originalChecklist: List<com.arijit.notes.utils.ChecklistItem> =
+                if (!originalChecklistJson.isNullOrEmpty()) com.google.gson.Gson()
+                    .fromJson(originalChecklistJson, type) else emptyList()
 
             val changed = title != originalTitle ||
                     content != originalContent ||

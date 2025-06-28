@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.animation.AnimatorListenerAdapter
+import android.content.res.Configuration
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.widget.EditText
@@ -34,6 +35,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import android.graphics.Rect
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.RelativeLayout
@@ -61,6 +63,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var noteAdapter: NoteAdapter
     private val allNotes = mutableListOf<Note>()
     private lateinit var addNoteLauncher: ActivityResultLauncher<Intent>
+    private var nightMode: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +74,12 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+            nightMode = true
+        } else
+            nightMode = false
 
         addNoteBtn = findViewById(R.id.add_btn)
         searchHintText = findViewById(R.id.search_hint_text)
@@ -142,6 +151,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 addNoteLauncher.launch(intent)
             }
+        }, {
+            // onNoteDeleted callback - refresh the notes list
+            fetchNotesFromFirebase()
         })
 
         notesRecyclerView.layoutManager =
@@ -205,28 +217,8 @@ class MainActivity : AppCompatActivity() {
                     animateTextOnce()
                 }
 
-            // Fetch notes from uid
-            FirebaseFirestore.getInstance().collection("notes")
-                .whereEqualTo("userId", uid)
-                .get()
-                .addOnSuccessListener { querySnapshot ->
-                    val notes = querySnapshot.documents.map { doc ->
-                        val note = doc.toObject(Note::class.java)!!.copy(id = doc.id)
-                        val checklistField = doc.get("checkList")
-                        val checklistJson: String = when (checklistField) {
-                            is String -> checklistField
-                            is List<*> -> Gson().toJson(checklistField)
-                            else -> "[]"
-                        }
-                        note.checkListJson = checklistJson
-                        note
-                    }
-                        .sortedWith(compareByDescending<Note> { it.isPinned }.thenByDescending { it.timeStamp })
-
-                    allNotes.clear()
-                    allNotes.addAll(notes)
-                    noteAdapter.updateNotes(allNotes)
-                }
+            // Fetch notes from Firebase
+            fetchNotesFromFirebase()
 
             // Fetch labels
             FirebaseFirestore.getInstance().collection("labels")
@@ -258,13 +250,22 @@ class MainActivity : AppCompatActivity() {
         labelList.forEachIndexed { index, label ->
             val labelView = TextView(this).apply {
                 text = label
+                if (nightMode) setTextColor(getResources().getColor(R.color.white))
+                else setTextColor(getResources().getColor(R.color.black))
                 setPadding(40, 20, 40, 20)
                 textSize = 12f
                 typeface = ResourcesCompat.getFont(this@MainActivity, R.font.poppins_regular)
                 setBackgroundResource(
-                    if (label == selectedLabel) R.drawable.label_bg_solid
-                    else R.drawable.label_bg_outline
+                    if (label == selectedLabel) {
+                       if (!nightMode) R.drawable.label_bg_solid
+                        else R.drawable.label_bg_solid_dark
+                    }
+                    else {
+                        if(!nightMode) R.drawable.label_bg_outline
+                        else R.drawable.label_bg_outline_dark
+                    }
                 )
+
 
                 val params = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -385,6 +386,32 @@ class MainActivity : AppCompatActivity() {
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Failed to load notes", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun fetchNotesFromFirebase() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        
+        FirebaseFirestore.getInstance().collection("notes")
+            .whereEqualTo("userId", uid)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val notes = querySnapshot.documents.map { doc ->
+                    val note = doc.toObject(Note::class.java)!!.copy(id = doc.id)
+                    val checklistField = doc.get("checkList")
+                    val checklistJson: String = when (checklistField) {
+                        is String -> checklistField
+                        is List<*> -> Gson().toJson(checklistField)
+                        else -> "[]"
+                    }
+                    note.checkListJson = checklistJson
+                    note
+                }
+                    .sortedWith(compareByDescending<Note> { it.isPinned }.thenByDescending { it.timeStamp })
+
+                allNotes.clear()
+                allNotes.addAll(notes)
+                noteAdapter.updateNotes(allNotes)
             }
     }
 
