@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresPermission
@@ -23,6 +24,8 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var logoutBtn: CardView
     private lateinit var deleteNotesBtn: CardView
     private lateinit var githubBtn: CardView
+    private lateinit var arijit: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -65,6 +68,13 @@ class SettingsActivity : AppCompatActivity() {
         githubBtn.setOnClickListener {
             vibrate(100)
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Arijit-05/Scribbly"))
+            startActivity(intent)
+        }
+
+        arijit = findViewById(R.id.arijit)
+        arijit.setOnClickListener {
+            vibrate(100)
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://arijit-05.github.io/website/"))
             startActivity(intent)
         }
     }

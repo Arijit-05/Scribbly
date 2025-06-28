@@ -201,6 +201,29 @@ class AddNoteActivity : AppCompatActivity() {
         checkBox.buttonTintList =
             ColorStateList.valueOf(ContextCompat.getColor(this, R.color.black))
 
+        // Long press to delete checklist item
+        checkBox.setOnLongClickListener {
+            vibrate()
+            AlertDialog.Builder(this)
+                .setTitle("Delete Checklist Item")
+                .setMessage("Are you sure you want to delete this item? This action cannot be undone.")
+                .setPositiveButton("Delete") { _, _ ->
+                    // Remove from checklistItems and UI
+                    val index = checklistContainer.indexOfChild(checkBox)
+                    if (index != -1) {
+                        checklistItems.removeAt(index)
+                        checklistContainer.removeViewAt(index)
+                        // If editing an existing note, update Firebase
+                        if (intent.getStringExtra("noteId") != null) {
+                            saveNoteAndFinish()
+                        }
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+            true
+        }
+
         checklistContainer.addView(checkBox)
     }
 
