@@ -1,5 +1,4 @@
-# 📝 Notes App
-
+# 📝 Scribbly
 A beautifully minimal and powerful Android Notes app built using **Kotlin**, **Firebase**, and **Lottie Animations**. It supports rich note-taking with features like pinning, color customization, labels, checklists, and real-time syncing via Firestore.
 
 ---
