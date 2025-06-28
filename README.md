@@ -42,6 +42,13 @@ A beautifully minimal and powerful Android Notes app built using **Kotlin**, **F
 
 ---
 
+## 👓 Test the application before signing up
+Yes, you don’t have to create an account to try the app — you can use the demo account to explore all features without signing up!
+
+Email: demo.scribbly@gmail.com
+
+Pin: 1234
+
 ## 🔧 Installation
 
 1. Clone the repo:
