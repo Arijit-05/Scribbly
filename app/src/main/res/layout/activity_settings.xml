@@ -38,7 +38,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#FFD7D7"
+                android:background="#FF9B9B"
                 android:orientation="horizontal"
                 android:padding="20dp">
 
@@ -71,7 +71,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#FFE0E0"
+                android:background="#FFAFAF"
                 android:orientation="horizontal"
                 android:padding="20dp">
 
@@ -104,7 +104,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#FFECEC"
+                android:background="#FFC1C1"
                 android:padding="20dp">
 
                 <ImageView
