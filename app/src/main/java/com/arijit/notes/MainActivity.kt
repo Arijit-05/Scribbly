@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.animation.AnimatorListenerAdapter
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -36,14 +37,19 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import android.graphics.Rect
 import android.util.Log
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.RelativeLayout
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.airbnb.lottie.LottieAnimationView
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.gson.Gson
+import java.io.File
 import kotlin.collections.emptyList
 
 class MainActivity : AppCompatActivity() {
@@ -64,6 +70,9 @@ class MainActivity : AppCompatActivity() {
     private val allNotes = mutableListOf<Note>()
     private lateinit var addNoteLauncher: ActivityResultLauncher<Intent>
     private var nightMode: Boolean = false
+    // Request code constants for SAF
+    private val EXPORT_REQUEST_CODE = 201
+    private val IMPORT_REQUEST_CODE = 202
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,6 +82,19 @@ class MainActivity : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+
+        // Only request WRITE_EXTERNAL_STORAGE for Android 9 and below
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    101
+                )
+            }
         }
 
         val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
@@ -242,7 +264,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // fetchNotes() // No longer needed here
     }
 
     private fun renderLabels() {
@@ -257,15 +278,13 @@ class MainActivity : AppCompatActivity() {
                 typeface = ResourcesCompat.getFont(this@MainActivity, R.font.poppins_regular)
                 setBackgroundResource(
                     if (label == selectedLabel) {
-                       if (!nightMode) R.drawable.label_bg_solid
+                        if (!nightMode) R.drawable.label_bg_solid
                         else R.drawable.label_bg_solid_dark
-                    }
-                    else {
-                        if(!nightMode) R.drawable.label_bg_outline
+                    } else {
+                        if (!nightMode) R.drawable.label_bg_outline
                         else R.drawable.label_bg_outline_dark
                     }
                 )
-
 
                 val params = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -282,17 +301,48 @@ class MainActivity : AppCompatActivity() {
 
                 if (label != "All Notes") {
                     setOnLongClickListener {
+                        val options = arrayOf("Edit", "Delete")
                         AlertDialog.Builder(this@MainActivity)
-                            .setTitle("Delete Label")
-                            .setMessage("Do you want to delete '$label'?")
-                            .setPositiveButton("Delete") { _, _ ->
-                                labelList.remove(label)
-                                if (selectedLabel == label) selectedLabel = "All Notes"
-                                renderLabels()
-                                filterNotesByLabel(selectedLabel)
-                                saveLabelsToFirebase()
+                            .setTitle("Choose Action")
+                            .setItems(options) { dialog, which ->
+                                when (which) {
+                                    0 -> { // Edit
+                                        val editText = EditText(this@MainActivity).apply {
+                                            setText(label)
+                                        }
+                                        AlertDialog.Builder(this@MainActivity)
+                                            .setTitle("Edit Label")
+                                            .setView(editText)
+                                            .setPositiveButton("Save") { _, _ ->
+                                                val newLabel = editText.text.toString().trim()
+                                                if (newLabel.isNotEmpty() && newLabel != label) {
+                                                    labelList[index] = newLabel
+                                                    if (selectedLabel == label) selectedLabel = newLabel
+                                                    renderLabels()
+                                                    filterNotesByLabel(selectedLabel)
+                                                    saveLabelsToFirebase()
+                                                }
+                                            }
+                                            .setNegativeButton("Cancel", null)
+                                            .show()
+                                    }
+
+                                    1 -> { // Delete
+                                        AlertDialog.Builder(this@MainActivity)
+                                            .setTitle("Delete Label")
+                                            .setMessage("Do you want to delete '$label'?")
+                                            .setPositiveButton("Delete") { _, _ ->
+                                                labelList.removeAt(index)
+                                                if (selectedLabel == label) selectedLabel = "All Notes"
+                                                renderLabels()
+                                                filterNotesByLabel(selectedLabel)
+                                                saveLabelsToFirebase()
+                                            }
+                                            .setNegativeButton("Cancel", null)
+                                            .show()
+                                    }
+                                }
                             }
-                            .setNegativeButton("Cancel", null)
                             .show()
                         true
                     }
@@ -426,6 +476,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 101) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Storage permission granted", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Storage permission denied. Some features may not work.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     fun showKeyboard(view: View) {
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
@@ -446,6 +507,51 @@ class MainActivity : AppCompatActivity() {
                 vibrator.vibrate(vibrationEffect)
             } else {
                 vibrator.vibrate(50) // Vibrate for 50 milliseconds
+            }
+        }
+    }
+
+    // Call this to export notes (e.g., from a button)
+    private fun exportNotesWithSAF() {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/json"
+            putExtra(Intent.EXTRA_TITLE, "notes_backup.json")
+        }
+        startActivityForResult(intent, EXPORT_REQUEST_CODE)
+    }
+
+    // Call this to import notes (e.g., from a button)
+    private fun importNotesWithSAF() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/json"
+        }
+        startActivityForResult(intent, IMPORT_REQUEST_CODE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == EXPORT_REQUEST_CODE && resultCode == RESULT_OK) {
+            data?.data?.let { uri ->
+                // Export allNotes as JSON
+                val notesJson = Gson().toJson(allNotes)
+                contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    outputStream.write(notesJson.toByteArray())
+                    Toast.makeText(this, "Notes exported successfully!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else if (requestCode == IMPORT_REQUEST_CODE && resultCode == RESULT_OK) {
+            data?.data?.let { uri ->
+                contentResolver.openInputStream(uri)?.use { inputStream ->
+                    val json = inputStream.bufferedReader().use { it.readText() }
+                    // Parse and import notes (replace or merge as needed)
+                    val importedNotes = Gson().fromJson(json, Array<Note>::class.java).toList()
+                    allNotes.clear()
+                    allNotes.addAll(importedNotes)
+                    noteAdapter.updateNotes(allNotes)
+                    Toast.makeText(this, "Notes imported successfully!", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
