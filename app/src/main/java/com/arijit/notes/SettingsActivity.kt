@@ -177,11 +177,19 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun importNotesWithSAF() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "application/json"
-        }
-        startActivityForResult(intent, IMPORT_REQUEST_CODE)
+        // Show dialog before importing
+        AlertDialog.Builder(this)
+            .setTitle("Import Notes")
+            .setMessage("Select a JSON file containing notes. New notes will be merged with your existing notes and uploaded to Firebase. Existing notes will not be deleted.")
+            .setPositiveButton("Continue") { _, _ ->
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "application/json"
+                }
+                startActivityForResult(intent, IMPORT_REQUEST_CODE)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -192,12 +200,12 @@ class SettingsActivity : AppCompatActivity() {
             }
         } else if (requestCode == IMPORT_REQUEST_CODE && resultCode == RESULT_OK) {
             data?.data?.let { uri ->
-                // (Optional) handle import here
+                importNotesFromUri(uri)
             }
         }
     }
 
-    private fun exportNotesToUri(uri: android.net.Uri) {
+    private fun exportNotesToUri(uri: Uri) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val firestore = FirebaseFirestore.getInstance()
         firestore.collection("notes")
@@ -214,5 +222,76 @@ class SettingsActivity : AppCompatActivity() {
             .addOnFailureListener {
                 Toast.makeText(this, "Failed to export notes", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    private fun importNotesFromUri(uri: android.net.Uri) {
+        // Check MIME type and extension
+        val contentResolver = contentResolver
+        val mimeType = contentResolver.getType(uri)
+        val fileName = getFileName(uri)
+        if (mimeType != "application/json" && (fileName == null || !fileName.endsWith(".json"))) {
+            Toast.makeText(this, "Selected file is not a JSON file.", Toast.LENGTH_LONG).show()
+            return
+        }
+        try {
+            contentResolver.openInputStream(uri)?.use { inputStream ->
+                val json = inputStream.bufferedReader().use { it.readText() }
+                val importedNotes = Gson().fromJson(json, Array<com.arijit.notes.utils.Note>::class.java)?.toList()
+                if (importedNotes == null || importedNotes.isEmpty()) {
+                    Toast.makeText(this, "No notes found in the file.", Toast.LENGTH_LONG).show()
+                    return
+                }
+                // Merge notes: upload to Firebase and update UI
+                uploadImportedNotesToFirebase(importedNotes)
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Failed to import notes: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun uploadImportedNotesToFirebase(importedNotes: List<com.arijit.notes.utils.Note>) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val firestore = FirebaseFirestore.getInstance()
+        val batch = firestore.batch()
+        val notesCollection = firestore.collection("notes")
+        for (note in importedNotes) {
+            val newDoc = notesCollection.document() // New ID
+            val noteMap = hashMapOf(
+                "userId" to userId,
+                "title" to note.title,
+                "content" to note.content,
+                "isPinned" to note.isPinned,
+                "backgroundColor" to note.backgroundColor,
+                "labels" to note.labels,
+                "timeStamp" to note.timeStamp,
+                "checkList" to note.checkListJson
+            )
+            batch.set(newDoc, noteMap)
+        }
+        batch.commit().addOnSuccessListener {
+            Toast.makeText(this, "Notes imported and uploaded!", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Failed to upload imported notes.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun getFileName(uri: android.net.Uri): String? {
+        var result: String? = null
+        if (uri.scheme == "content") {
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    result = it.getString(it.getColumnIndexOrThrow(android.provider.OpenableColumns.DISPLAY_NAME))
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.path
+            val cut = result?.lastIndexOf('/') ?: -1
+            if (cut != -1) {
+                result = result?.substring(cut + 1)
+            }
+        }
+        return result
     }
 }

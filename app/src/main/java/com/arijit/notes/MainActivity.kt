@@ -36,9 +36,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import android.graphics.Rect
-import android.util.Log
-import android.view.GestureDetector
-import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.RelativeLayout
@@ -49,7 +46,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.airbnb.lottie.LottieAnimationView
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.gson.Gson
-import java.io.File
 import kotlin.collections.emptyList
 
 class MainActivity : AppCompatActivity() {
