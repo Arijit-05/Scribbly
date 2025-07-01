@@ -1,5 +1,4 @@
-# 📝 Notes App
-
+# 📝 Scribbly
 A beautifully minimal and powerful Android Notes app built using **Kotlin**, **Firebase**, and **Lottie Animations**. It supports rich note-taking with features like pinning, color customization, labels, checklists, and real-time syncing via Firestore.
 
 ---
@@ -21,7 +20,16 @@ A beautifully minimal and powerful Android Notes app built using **Kotlin**, **F
 
 ## 📸 UI Highlights
 
-
+<table> 
+   <tr> 
+      </td> <td><img src="https://github.com/user-attachments/assets/80093732-7055-49d8-8d8b-bb9a0e2cc206" width="250"/></td> 
+      <td><img src="https://github.com/user-attachments/assets/4a33ee3a-23f5-4431-87d6-a1e93748830f" width="250"/></td>
+      <td><img src="https://github.com/user-attachments/assets/a9b1cc3e-cc9e-4c44-bf79-5a3bf9ef085d" width="250"/></td><tr></tr>
+      </td> <td><img src="https://github.com/user-attachments/assets/efc538f5-3a0e-478d-964c-53192792325e" width="250"/></td>
+      </td> <td><img src="https://github.com/user-attachments/assets/ee5e616a-f035-4b81-8f1d-6f0185e7dd0d" width="250"/></td>
+      <td><img src="https://github.com/user-attachments/assets/0c93f0f0-0b41-479e-8371-d44117290b24" width="250"/></td>
+   
+</table>
 
 ---
 
@@ -33,6 +41,13 @@ A beautifully minimal and powerful Android Notes app built using **Kotlin**, **F
 - **RecyclerView + CardView**
 
 ---
+
+## 👓 Test the application before signing up
+Yes, you don’t have to create an account to try the app — you can use the demo account to explore all features without signing up!
+
+Email: demo.scribbly@gmail.com
+
+Pin: 1234
 
 ## 🔧 Installation
 
