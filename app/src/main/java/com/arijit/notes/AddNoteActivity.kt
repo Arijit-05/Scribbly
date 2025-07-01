@@ -135,17 +135,21 @@ class AddNoteActivity : AppCompatActivity() {
         addColor.setOnClickListener {
             vibrate()
             val initial =
-                if (selectedColor.isNotEmpty()) Color.parseColor(selectedColor) else R.color.default_note
+                if (selectedColor.isNotEmpty())
+                    Color.parseColor(selectedColor)
+                else
+                    Color.parseColor("#FFFF4081")
 
-            val dialog = com.flask.colorpicker.builder.ColorPickerDialogBuilder.with(this)
+            // Always use a light theme for the color picker dialog
+            val dialog = ColorPickerDialogBuilder.with(this)
                 .setTitle("Pick a color")
                 .initialColor(initial)
-                .wheelType(com.flask.colorpicker.ColorPickerView.WHEEL_TYPE.FLOWER)
+                .wheelType(ColorPickerView.WHEEL_TYPE.FLOWER)
                 .density(12)
                 .setPositiveButton("OK") { _, color, _ ->
                     selectedColor = String.format("#%06X", 0xFFFFFF and color)
-                    pinBtn.setColorFilter(color) // indicate selection
-                    Toast.makeText(this, "Color chosen!", Toast.LENGTH_SHORT).show()
+                    findViewById<View>(R.id.main).setBackgroundColor(color)
+                    Toast.makeText(this, "Color selected!", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("Cancel", null)
                 .build()

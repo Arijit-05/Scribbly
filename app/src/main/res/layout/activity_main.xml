@@ -70,7 +70,7 @@
     <!-- SEARCH EDIT TEXT -->
     <EditText
         android:id="@+id/search_bar"
-        android:layout_width="match_parent"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_marginHorizontal="15dp"
@@ -79,10 +79,10 @@
         android:fontFamily="@font/poppins_regular"
         android:hint="Search your notes"
         android:inputType="text"
+        android:visibility="gone"
         android:padding="14dp"
         android:textColor="@color/black"
-        android:textSize="16sp"
-        android:visibility="gone" />
+        android:textSize="16sp" />
 
     <!-- LABEL HORIZONTAL SCROLL VIEW -->
     <HorizontalScrollView
