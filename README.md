@@ -22,12 +22,12 @@ A beautifully minimal and powerful Android Notes app built using **Kotlin**, **F
 
 <table> 
    <tr> 
-      </td> <td><img src="https://github.com/user-attachments/assets/80093732-7055-49d8-8d8b-bb9a0e2cc206" width="250"/></td> 
-      <td><img src="https://github.com/user-attachments/assets/4a33ee3a-23f5-4431-87d6-a1e93748830f" width="250"/></td>
-      <td><img src="https://github.com/user-attachments/assets/a9b1cc3e-cc9e-4c44-bf79-5a3bf9ef085d" width="250"/></td><tr></tr>
+      </td> <td><img src="https://github.com/user-attachments/assets/6ed75b7d-fe4e-4045-a84b-6a2f36bd7382" width="250"/></td> 
+      <td><img src="https://github.com/user-attachments/assets/a6e4bbec-24a6-4bd9-a662-9c502d423b81" width="250"/></td>
+      <td><img src="https://github.com/user-attachments/assets/86fbeb14-79a8-48ec-90a7-2d027861864e" width="250"/></td><tr></tr>
       </td> <td><img src="https://github.com/user-attachments/assets/efc538f5-3a0e-478d-964c-53192792325e" width="250"/></td>
       </td> <td><img src="https://github.com/user-attachments/assets/ee5e616a-f035-4b81-8f1d-6f0185e7dd0d" width="250"/></td>
-      <td><img src="https://github.com/user-attachments/assets/0c93f0f0-0b41-479e-8371-d44117290b24" width="250"/></td>
+      <td><img src="https://github.com/user-attachments/assets/86805840-daff-4749-a63c-46ea2f23bd8b" width="250"/></td>
    
 </table>
 
