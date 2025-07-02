@@ -49,6 +49,8 @@ import com.google.gson.Gson
 import kotlin.collections.emptyList
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var relativeLayout: RelativeLayout
+    private lateinit var loadingAnim: LottieAnimationView
     private lateinit var notesRecyclerView: RecyclerView
     private lateinit var addNoteBtn: CardView
     private lateinit var searchHintText: TextView
@@ -66,9 +68,10 @@ class MainActivity : AppCompatActivity() {
     private val allNotes = mutableListOf<Note>()
     private lateinit var addNoteLauncher: ActivityResultLauncher<Intent>
     private var nightMode: Boolean = false
-    // Request code constants for SAF
     private val EXPORT_REQUEST_CODE = 201
     private val IMPORT_REQUEST_CODE = 202
+    private var notesLoaded = false
+    private var labelsLoaded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,6 +82,27 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        relativeLayout = findViewById(R.id.container)
+        loadingAnim = findViewById(R.id.loading_anim)
+
+        // Show loading animation and hide main content at start
+        loadingAnim.visibility = View.VISIBLE
+        loadingAnim.playAnimation()
+        relativeLayout.visibility = View.GONE
+        notesLoaded = false
+        labelsLoaded = false
+
+        Handler(Looper.getMainLooper()).postDelayed( {
+            loadingAnim.cancelAnimation()
+            loadingAnim.visibility = View.GONE
+
+            relativeLayout.visibility = View.VISIBLE
+            relativeLayout.animate()
+                .alpha(1f)
+                .setDuration(500)
+                .start()
+        }, 2000)
 
         // Only request WRITE_EXTERNAL_STORAGE for Android 9 and below
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -248,8 +272,18 @@ class MainActivity : AppCompatActivity() {
                     labelList.add("All Notes")
                     labelList.addAll(labelsFromFirebase)
                     renderLabels()
+                    labelsLoaded = true
+                    checkIfLoadingComplete()
                 }
-
+                .addOnFailureListener {
+                    labelsLoaded = true
+                    checkIfLoadingComplete()
+                }
+        } else {
+            // If not logged in, skip loading
+            notesLoaded = true
+            labelsLoaded = true
+            checkIfLoadingComplete()
         }
 
         FirebaseFirestore.getInstance().firestoreSettings = FirebaseFirestoreSettings.Builder()
@@ -437,7 +471,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun fetchNotesFromFirebase() {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        
+        notesLoaded = false
         FirebaseFirestore.getInstance().collection("notes")
             .whereEqualTo("userId", uid)
             .get()
@@ -458,7 +492,23 @@ class MainActivity : AppCompatActivity() {
                 allNotes.clear()
                 allNotes.addAll(notes)
                 noteAdapter.updateNotes(allNotes)
+                notesLoaded = true
+                checkIfLoadingComplete()
             }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to load notes", Toast.LENGTH_SHORT).show()
+                notesLoaded = true
+                checkIfLoadingComplete()
+            }
+    }
+
+    private fun checkIfLoadingComplete() {
+        if (notesLoaded && labelsLoaded) {
+            loadingAnim.cancelAnimation()
+            loadingAnim.visibility = View.GONE
+            relativeLayout.visibility = View.VISIBLE
+            relativeLayout.animate().alpha(1f).setDuration(500).start()
+        }
     }
 
     override fun onBackPressed() {

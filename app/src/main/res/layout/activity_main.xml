@@ -7,33 +7,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!-- ADD NOTE BUTTON -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/add_btn"
-        android:layout_width="55dp"
-        android:layout_height="55dp"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
-        app:cardCornerRadius="10dp">
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/red"
-            android:gravity="center"
-            android:padding="15dp">
-
-            <ImageView
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:src="@drawable/pen" />
-
-        </RelativeLayout>
-
-    </androidx.cardview.widget.CardView>
-
     <!-- HEADER -->
     <RelativeLayout
         android:id="@+id/header"
@@ -79,93 +52,139 @@
         android:fontFamily="@font/poppins_regular"
         android:hint="Search your notes"
         android:inputType="text"
-        android:visibility="gone"
         android:padding="14dp"
         android:textColor="@color/black"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:visibility="gone" />
 
-    <!-- LABEL HORIZONTAL SCROLL VIEW -->
-    <HorizontalScrollView
-        android:id="@+id/labels"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <!-- CONTAINER -->
+    <RelativeLayout
+        android:id="@+id/container"
         android:layout_below="@id/header"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="10dp"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <LinearLayout
+        <!-- ADD NOTE BUTTON -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/add_btn"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="10dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/red"
+                android:gravity="center"
+                android:padding="15dp">
+
+                <ImageView
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@drawable/plus" />
+
+            </RelativeLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- LABEL HORIZONTAL SCROLL VIEW -->
+        <HorizontalScrollView
+            android:id="@+id/labels"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_marginStart="15dp">
 
             <LinearLayout
-                android:id="@+id/label_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/all_notes"
+                <LinearLayout
+                    android:id="@+id/label_container"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/label_bg_solid"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/all_notes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/label_bg_solid"
+                        android:fontFamily="@font/poppins_regular"
+                        android:paddingHorizontal="20dp"
+                        android:paddingVertical="8dp"
+                        android:text="All Notes"
+                        android:textColor="@color/black"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/add_label_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="5dp"
+                    android:background="@drawable/label_bg_outline"
                     android:fontFamily="@font/poppins_regular"
                     android:paddingHorizontal="20dp"
-                    android:paddingVertical="8dp"
-                    android:text="All Notes"
-                    android:textColor="@color/black"
+                    android:paddingVertical="7dp"
+                    android:text="Add label +"
                     android:textSize="12sp" />
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/add_label_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="5dp"
-                android:background="@drawable/label_bg_outline"
-                android:fontFamily="@font/poppins_regular"
-                android:paddingHorizontal="20dp"
-                android:paddingVertical="7dp"
-                android:text="Add label +"
-                android:textSize="12sp" />
+        </HorizontalScrollView>
 
-        </LinearLayout>
-
-    </HorizontalScrollView>
-
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefreshLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/labels">
-
-        <RelativeLayout
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_below="@id/labels">
 
-            <com.airbnb.lottie.LottieAnimationView
-                android:id="@+id/lottie_refresh"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="20dp"
-                android:visibility="gone"
-                app:lottie_autoPlay="true"
-                app:lottie_loop="true"
-                app:lottie_rawRes="@raw/lottie_refresh" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/notes_recycler_view"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="15dp"
-                android:layout_marginTop="10dp"
-                tools:listitem="@layout/note_item" />
+                android:layout_height="match_parent">
 
-        </RelativeLayout>
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/lottie_refresh"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="20dp"
+                    android:visibility="gone"
+                    app:lottie_autoPlay="true"
+                    app:lottie_loop="true"
+                    app:lottie_rawRes="@raw/lottie_refresh" />
 
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/notes_recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="15dp"
+                    android:layout_marginTop="10dp"
+                    tools:listitem="@layout/note_item" />
+
+            </RelativeLayout>
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    </RelativeLayout>
+
+    <!-- LOADING ANIMATION -->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/loading_anim"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_centerInParent="true"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/lottie_loading_text" />
 
 </RelativeLayout>
