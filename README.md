@@ -3,6 +3,11 @@ A beautifully minimal and powerful Android Notes app built using **Kotlin**, **F
 
 ---
 
+## Web version of the application is now available at
+https://scribbly-web.vercel.app/
+
+---
+
 ## 🚀 Features
 
 - 🧠 **Create, Edit & Delete Notes**
